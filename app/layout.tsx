@@ -28,7 +28,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <div className="bg-secondary border border-secondary w-screen h-screen">
+          {children}
+        </div>
       </body>
     </html>
   );
