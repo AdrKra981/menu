@@ -3,13 +3,13 @@ import React, { FC } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { formSchema, FormSchema } from "@/helpers/FormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Menu } from "./Menu";
 
-interface MenuPositionFormProps {
-  parent_id?: string | null;
-  menu_position_id?: string | null;
-  createMenu: (data: FormSchema) => void;
+interface EditMenuPositionFormProps {
+  updateMenu: (data: Menu) => void;
   handleClose: () => void;
   margin?: boolean;
+  data: Menu;
 }
 
 const InputWrapper = (props: { children: React.ReactNode }) => {
@@ -56,33 +56,25 @@ const SearchIcon = () => {
   );
 };
 
-const MenuPositionForm: FC<MenuPositionFormProps> = ({
-  parent_id,
-  createMenu,
+const EditMenuPositionForm: FC<EditMenuPositionFormProps> = ({
+  updateMenu,
   handleClose,
   margin,
-  menu_position_id,
+  data,
 }) => {
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      label: "",
-      url: "",
-      parent_id,
-      menu_position_id,
-    },
+    defaultValues: data,
   });
 
   const {
     handleSubmit,
     register,
-    reset,
     formState: { errors, isSubmitting },
   } = form;
 
   const onSubmit: SubmitHandler<FormSchema> = async (data: FormSchema) => {
-    createMenu(data);
-    reset();
+    updateMenu(data as Menu);
   };
 
   return (
@@ -136,7 +128,7 @@ const MenuPositionForm: FC<MenuPositionFormProps> = ({
             type="submit"
             disabled={isSubmitting}
           >
-            Dodaj
+            Edytuj
           </button>
         </div>
       </form>
@@ -144,4 +136,4 @@ const MenuPositionForm: FC<MenuPositionFormProps> = ({
   );
 };
 
-export default MenuPositionForm;
+export default EditMenuPositionForm;
