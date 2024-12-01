@@ -55,35 +55,66 @@ const formatData = (onlyMenus: Menu[], sort?: boolean) => {
     }
   });
 
-  finalOnlyMenus
-    .map((menu) => {
-      if (subMenus[menu.id]) {
-        return {
-          ...menu,
-          sub_menu:
-            menu.sub_menu && menu.sub_menu.length > 0 && sort
-              ? menu.sub_menu
-              : subMenus[menu.id],
+  finalOnlyMenus = finalOnlyMenus.map((menu) => {
+    if (subMenus[menu.id]) {
+      return {
+        ...menu,
+        sub_menu:
+          menu.sub_menu && menu.sub_menu.length > 0 && sort
+            ? menu.sub_menu
+            : subMenus[menu.id],
+      };
+    }
+
+    return menu;
+  });
+
+  finalOnlyMenus.forEach((item) => {
+    if (item.menu_position_id) {
+      if (!menus[item.menu_position_id]) {
+        menus[item.menu_position_id] = {
+          id: item.menu_position_id,
+          menus: [
+            {
+              ...item,
+              sub_menu:
+                item.sub_menu &&
+                item.sub_menu?.map((sub) => {
+                  const findInFinal = finalOnlyMenus.find(
+                    (element) => element.id === sub.id
+                  );
+                  if (findInFinal) {
+                    return findInFinal;
+                  }
+                  return sub;
+                }),
+            },
+          ],
+        };
+      } else {
+        menus[item.menu_position_id] = {
+          id: item.menu_position_id,
+          menus: [
+            ...menus[item.menu_position_id].menus,
+            {
+              ...item,
+              sub_menu:
+                item.sub_menu &&
+                item.sub_menu?.map((sub) => {
+                  const findInFinal = finalOnlyMenus.find(
+                    (element) => element.id === sub.id
+                  );
+                  if (findInFinal) {
+                    return findInFinal;
+                  }
+                  return sub;
+                }),
+            },
+          ],
         };
       }
-
-      return menu;
-    })
-    .forEach((item) => {
-      if (item.menu_position_id) {
-        if (!menus[item.menu_position_id]) {
-          menus[item.menu_position_id] = {
-            id: item.menu_position_id,
-            menus: [item],
-          };
-        } else {
-          menus[item.menu_position_id] = {
-            id: item.menu_position_id,
-            menus: [...menus[item.menu_position_id].menus, item],
-          };
-        }
-      }
-    });
+    }
+  });
 
   return Object.values(menus);
 };
