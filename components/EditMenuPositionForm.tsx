@@ -95,6 +95,9 @@ const EditMenuPositionForm: FC<EditMenuPositionFormProps> = ({
                   type="text"
                   placeholder="np. Promocje"
                 />
+                <div className="text-red-600 text-sm cursor-default">
+                  {errors["label"]?.message}
+                </div>
               </>
             </InputWrapper>
             <InputWrapper>
@@ -108,6 +111,9 @@ const EditMenuPositionForm: FC<EditMenuPositionFormProps> = ({
                   type="text"
                   placeholder="Wklej lub wyszukaj"
                 />
+                <div className="text-red-600 text-sm cursor-default">
+                  {errors["url"]?.message}
+                </div>
               </>
             </InputWrapper>
           </div>

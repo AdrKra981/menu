@@ -187,6 +187,7 @@ const Menu: FC<MenuProps> = () => {
     };
 
     setOnlyMenus([...onlyMenus, newMenu]);
+    handleClose();
     handleCloseMenuInMenus();
   };
 
