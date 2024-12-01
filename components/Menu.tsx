@@ -4,6 +4,18 @@ import EmptyMenuView from "./EmptyMenuView";
 import MenuPositionForm from "./MenuPositionForm";
 import MenuItem from "./MenuItem";
 import { FormSchema } from "@/helpers/FormSchema";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
 
 interface MenuProps {}
 
@@ -28,7 +40,7 @@ export type Menu = {
   parent_id: string | null;
 };
 
-const formatData = (onlyMenus: Menu[]) => {
+const formatData = (onlyMenus: Menu[], sort?: boolean) => {
   let menus: { [id: string]: MenuPosition } = {};
   let subMenus: { [id: string]: Menu[] } = {};
   let finalOnlyMenus: Menu[] = onlyMenus;
@@ -42,22 +54,17 @@ const formatData = (onlyMenus: Menu[]) => {
       }
     }
   });
-  console.log("subMenus", subMenus);
-  console.log(
-    "first",
-    finalOnlyMenus.map((menu) => {
-      if (subMenus[menu.id]) {
-        return { ...menu, sub_menu: subMenus[menu.id] };
-      }
-
-      return menu;
-    })
-  );
 
   finalOnlyMenus
     .map((menu) => {
       if (subMenus[menu.id]) {
-        return { ...menu, sub_menu: subMenus[menu.id] };
+        return {
+          ...menu,
+          sub_menu:
+            menu.sub_menu && menu.sub_menu.length > 0 && sort
+              ? menu.sub_menu
+              : subMenus[menu.id],
+        };
       }
 
       return menu;
@@ -94,8 +101,6 @@ const Menu: FC<MenuProps> = () => {
       setMenus(formatData(onlyMenus));
     }
   }, [onlyMenus]);
-
-  console.log("menus", menus);
 
   const handleClose = () => {
     setShowMenuPositionForm(false);
@@ -154,21 +159,52 @@ const Menu: FC<MenuProps> = () => {
     handleCloseMenuInMenus();
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleSort = (menu_position_id: string, sorted: Menu[]) => {
+    setMenus(
+      menus.map((item) => {
+        if (item.id === menu_position_id) {
+          return { ...item, menus: sorted };
+        }
+
+        return item;
+      })
+    );
+  };
+
+  const handleMenuSort = (id_parent: string, sorted: Menu[]) => {
+    setMenus(
+      formatData(
+        onlyMenus.map((item) => {
+          if (item.id === id_parent) {
+            return { ...item, sub_menu: sorted };
+          }
+
+          return item;
+        }),
+        true
+      )
+    );
+  };
+
   return (
     <div className="w-full h-full flex flex-col items-center bg-[#EAECF0]">
       <div className="px-6 w-full h-full">
-        {menus.length === 0 && (
-          <>
-            <EmptyMenuView handleClick={() => setShowMenuPositionForm(true)} />
-            {showMenuPositionForm && (
-              <MenuPositionForm
-                createMenu={handleNewMenuPositionCreate}
-                handleClose={handleClose}
-                margin
-              />
-            )}
-          </>
+        <EmptyMenuView handleClick={() => setShowMenuPositionForm(true)} />
+        {showMenuPositionForm && (
+          <MenuPositionForm
+            createMenu={handleNewMenuPositionCreate}
+            handleClose={handleClose}
+            margin
+          />
         )}
+
         {menus.map((menu, index) => {
           return (
             <div
@@ -178,24 +214,48 @@ const Menu: FC<MenuProps> = () => {
               } mb-[15px] w-full`}
             >
               <div className="w-full h-full flex flex-col">
-                {menu.menus.map((item) => {
-                  return (
-                    <MenuItem
-                      key={`menu_item_${item.id}`}
-                      menu={item}
-                      handleShowMenuInMenu={handleShowMenuInMenu}
-                      showMenuInMenu={showMenuInMenu}
-                      showEditMenu={showEditMenu}
-                      createMenu={handleNewMenuPositionCreate}
-                      handleClose={handleCloseMenuInMenus}
-                      handleEditClose={handleEditClose}
-                      handleDeleteMenu={handleDeleteMenu}
-                      handleShowEditMenu={handleShowEditMenu}
-                      menu_position_id={menu.id}
-                      updateMenu={handleMenuEdit}
-                    />
-                  );
-                })}
+                <DndContext
+                  sensors={sensors}
+                  onDragEnd={({ active, over }) => {
+                    if (over && active.id !== over?.id) {
+                      const activeIndex = menu.menus.findIndex(
+                        ({ id }) => id === active.id
+                      );
+                      const overIndex = menu.menus.findIndex(
+                        ({ id }) => id === over.id
+                      );
+
+                      handleSort(
+                        menu.id,
+                        arrayMove(menu.menus, activeIndex, overIndex)
+                      );
+                    }
+                  }}
+                >
+                  <SortableContext items={menu.menus}>
+                    <ul>
+                      {menu.menus.map((item) => {
+                        return (
+                          <MenuItem
+                            key={`menu_item_${item.id}`}
+                            menu={item}
+                            handleShowMenuInMenu={handleShowMenuInMenu}
+                            showMenuInMenu={showMenuInMenu}
+                            showEditMenu={showEditMenu}
+                            createMenu={handleNewMenuPositionCreate}
+                            handleClose={handleCloseMenuInMenus}
+                            handleEditClose={handleEditClose}
+                            handleDeleteMenu={handleDeleteMenu}
+                            handleShowEditMenu={handleShowEditMenu}
+                            menu_position_id={menu.id}
+                            updateMenu={handleMenuEdit}
+                            handleMenuSort={handleMenuSort}
+                          />
+                        );
+                      })}
+                    </ul>
+                  </SortableContext>
+                </DndContext>
                 {showMenuInMenu === menu.id && (
                   <div className="py-4 px-6">
                     <MenuPositionForm
