@@ -70,11 +70,13 @@ const EditMenuPositionForm: FC<EditMenuPositionFormProps> = ({
   const {
     handleSubmit,
     register,
+    reset,
     formState: { errors, isSubmitting },
   } = form;
 
   const onSubmit: SubmitHandler<FormSchema> = async (data: FormSchema) => {
     updateMenu(data as Menu);
+    reset();
   };
 
   return (

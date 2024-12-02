@@ -1,5 +1,5 @@
 "use client";
-import React, { FC, useEffect, useId, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import EmptyMenuView from "./EmptyMenuView";
 import MenuPositionForm from "./MenuPositionForm";
 import MenuItem from "./MenuItem";

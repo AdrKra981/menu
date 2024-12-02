@@ -1,5 +1,4 @@
 import React, { FC } from "react";
-import ComponentsWrapper from "./ComponentsWrapper";
 
 interface EmptyMenuViewProps {
   handleClick: () => void;
@@ -27,7 +26,7 @@ const PlusIcon = () => {
 
 const EmptyMenuView: FC<EmptyMenuViewProps> = ({ handleClick }) => {
   return (
-    <ComponentsWrapper>
+    <div className="px-4 py-6 border border-[#EAECF0] rounded-md flex flex-col gap-2 justify-center items-center h-40 bg-[#F9FAFB] mt-[30px] w-full">
       <span className="font-semibold text-base text-[#101828]">
         Menu jest puste
       </span>
@@ -40,7 +39,7 @@ const EmptyMenuView: FC<EmptyMenuViewProps> = ({ handleClick }) => {
       >
         <PlusIcon /> Dodaj pozycję menu
       </button>
-    </ComponentsWrapper>
+    </div>
   );
 };
 
